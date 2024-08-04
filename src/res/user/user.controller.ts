@@ -61,4 +61,12 @@ export class UserController {
       body.age: ${body.age}
     `;
   }
+
+  @Post('/signup')
+  async signup(@Body() body: any): Promise<any> {
+    const { email, password, nickname } = body;
+    const isCreated = await this.userService.signUp(email, password, nickname);
+
+    return isCreated;
+  }
 }

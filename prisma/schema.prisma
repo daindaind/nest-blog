@@ -13,6 +13,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// 사용자 1명이 여러개의 게시글을 작성할 수 있다
+// -> 사용자 : 게시글 = 1 : N 관계
+
+// 게시글 1개는 사용자 1명밖애 못 가진다
+// -> 1개의 게시글을 여러 사용자가 게시할 수 없다
+
 model User {
   id Int @id @default(autoincrement()) // id 값이 자동으로 증가하도록
   email String @unique
@@ -20,5 +26,46 @@ model User {
   nickname String @unique
   createAt DateTime @db.Timestamp(3) @default(now())
   updateAt DateTime @db.Timestamp(3) @updatedAt
-  deleleAt DateTime @db.Timestamp(3)
+  deleleAt DateTime? @db.Timestamp(3)
+
+  post Post[] // 사용자는 여러 게시글을 가질 수 있다.
+  comments Comment[] // 사용자는 여러 댓글을 가질 수 있다.
 }
+
+// model 키워드로 테이블을 만들 수 있다.
+model Post {
+  id Int @id @default(autoincrement())
+  title String
+  content String 
+  createdAt DateTime @db.Timestamp(3) @default(now())
+  updatedAt DateTime @db.Timestamp(3) @updatedAt
+  deleleAt DateTime? @db.Timestamp(3)
+  userId Int // userId는 unique하지 않다.
+
+  comments Comment[]
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Comment {
+  id Int @id @default(autoincrement())
+  content String
+  parentId Int?
+  userId Int
+  postId Int
+  createdAt DateTime @db.Timestamp(3) @default(now())
+  updatedAt  DateTime @db.Timestamp(3) @updatedAt
+  deleteAt DateTime? @db.Timestamp(3)
+
+  child Comment[] @relation("ParentChild")
+  parent Comment? @relation("ParentChild", fields: [parentId], references: [id])
+
+  user User @relation(fields: [userId], references: [id])
+  post Post @relation(fields: [postId], references: [id])
+}
+
+// 게시글 1개가 댓글 여러개를 가질 수 있다.
+// 게시글 : 댓글 = 1 : N
+
+// 댓글 1개는 게시글 1개를 가질 수 있어요.
+// comment: 세탁기 정말 좋아보이네요. -> 세탁기 글에 종속적이다.
